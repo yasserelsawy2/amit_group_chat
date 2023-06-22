@@ -5,4 +5,6 @@ class Strings {
   static String chatPageId = 'ChatPage';
   static String registerPageId = 'RegisterPage';
   static String loginPageId = 'login page';
+  static String devicetoken = '';
+  static String message = '';
 }

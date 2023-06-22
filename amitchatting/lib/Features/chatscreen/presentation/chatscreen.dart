@@ -2,6 +2,7 @@
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:groupchatapp/Features/chatscreen/api/functions.dart';
 import 'package:groupchatapp/core/Stringsfile.dart';
 import 'package:groupchatapp/core/constants.dart';
 import 'package:groupchatapp/Features/chatscreen/data/messagemodel.dart';
@@ -9,17 +10,41 @@ import 'package:groupchatapp/core/widgets/chat_buble.dart';
 import 'package:groupchatapp/core/widgets/show_snack_bar.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
 
-class ChatPage extends StatelessWidget {
+class ChatPage extends StatefulWidget {
+  ChatPage({super.key});
+
+  @override
+  State<ChatPage> createState() => _ChatPageState();
+}
+
+class _ChatPageState extends State<ChatPage> {
   final _controller = ScrollController();
+  List<String> tokenss = [];
 
   final CollectionReference messages =
       FirebaseFirestore.instance.collection(kMessagesCollections);
+
   TextEditingController controller = TextEditingController();
 
-  ChatPage({super.key});
+  Future getAllUserTokens() async {
+    await FirebaseFirestore.instance.collection('users').get().then((value) {
+      for (var element in value.docs) {
+        if (element.data()['token'] != Strings.devicetoken) {
+          tokenss.add(element.data()['token']);
+        }
+      }
+    });
+  }
+
+  @override
+  void initState() {
+    getAllUserTokens();
+    super.initState();
+  }
+
+  @override
   @override
   Widget build(BuildContext context) {
-    // var email = ModalRoute.of(context)!.settings.arguments;
     return StreamBuilder<QuerySnapshot>(
       stream: messages.orderBy(kCreatedAt, descending: true).snapshots(),
       builder: (context, snapshot) {
@@ -71,6 +96,9 @@ class ChatPage extends StatelessWidget {
                         hintText: 'Send Message',
                         suffixIcon: IconButton(
                           onPressed: () async {
+                            setState(() {
+                              Strings.message = controller.text;
+                            });
                             if (await InternetConnectionChecker()
                                 .hasConnection) {
                               if (controller.text.isNotEmpty) {
@@ -82,6 +110,8 @@ class ChatPage extends StatelessWidget {
                                   },
                                 );
                               }
+                              Functions.sendNotificationToTokens(tokenss);
+
                               controller.clear();
                             } else {
                               // ignore: use_build_context_synchronously

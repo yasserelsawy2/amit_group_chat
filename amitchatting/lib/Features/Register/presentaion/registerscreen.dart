@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:groupchatapp/Features/login/presentation/loginscreen.dart';
@@ -8,7 +10,7 @@ import 'package:groupchatapp/core/widgets/custom_text_field.dart';
 import 'package:groupchatapp/core/widgets/show_snack_bar.dart';
 
 class RegisterPage extends StatefulWidget {
-  RegisterPage({Key? key}) : super(key: key);
+  const RegisterPage({Key? key}) : super(key: key);
 
   @override
   State<RegisterPage> createState() => _RegisterPageState();
@@ -25,7 +27,20 @@ class _RegisterPageState extends State<RegisterPage> {
 
   Future<void> registerUser() async {
     await FirebaseAuth.instance
-        .createUserWithEmailAndPassword(email: email!, password: password!);
+        .createUserWithEmailAndPassword(email: email!, password: password!)
+        .then((value) => FirebaseFirestore.instance
+                .collection('users')
+                .doc()
+                .set({
+              'email': email,
+              'password': password,
+              'token': Strings.devicetoken
+            }));
+    final fcmToken = await FirebaseMessaging.instance.getToken();
+    setState(() {
+      Strings.devicetoken = fcmToken!;
+      Strings.email = email!;
+    });
   }
 
   @override
