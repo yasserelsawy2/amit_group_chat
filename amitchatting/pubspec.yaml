@@ -43,6 +43,8 @@ dependencies:
   internet_connection_checker: ^1.0.0+1
   firebase_messaging: ^14.6.3
   http: ^1.0.0
+  overlay_support: ^2.1.0
+
 
 dev_dependencies:
   flutter_test:
